@@ -44,11 +44,24 @@ jobs:
           mkdir -p ../V2rayNG/app/libs
           cp libv2ray.aar ../V2rayNG/app/libs/
 
-      - name: Build APK
+      - name: Generate signing key
+        run: |
+          cd V2rayNG
+          keytool -genkey -v -keystore aleyvpn.jks \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias aleyvpn \
+            -storepass aleyvpn123 -keypass aleyvpn123 \
+            -dname "CN=Aley VPN, OU=Dev, O=AleyVPN, L=City, ST=State, C=US"
+
+      - name: Build signed APK
         run: |
           cd V2rayNG
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$(pwd)/aleyvpn.jks \
+            -Pandroid.injected.signing.store.password=aleyvpn123 \
+            -Pandroid.injected.signing.key.alias=aleyvpn \
+            -Pandroid.injected.signing.key.password=aleyvpn123
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
